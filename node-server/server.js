@@ -212,3 +212,49 @@ app.put("/api/employees/:id", async (req, res) => {
  "Salary": 65000
 }
 // Should return JSON with success message, and the table will be changed */
+
+// Create 5. API: Delete an employee - DELETE method:
+
+app.delete("/api/employees/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validacija ID-a
+    if (isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ID",
+      });
+    }
+
+    const pool = await poolPromise;
+
+    const [result] = await pool.query(
+      "DELETE FROM DummyEmployees WHERE EmployeeID = ?",
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Employee with ID ${id} deleted successfully`,
+      deletedId: id,
+    });
+  } catch (error) {
+    console.error("Error deleting employee:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error, try again",
+      error: error.message,
+    });
+  }
+});
+
+/* Check if 5. API works: use Postman to send a DELETE request to http://localhost:5000/api/employees/1 (or any other existing ID number)
+Should return JSON with success message, and the employee will be deleted from the table */
