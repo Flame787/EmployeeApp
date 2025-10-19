@@ -58,25 +58,44 @@ app.get("/api/employees/:id", async (req, res) => {
     }
 
     const pool = await poolPromise; // Get connection pool: Waits for the database pool to be ready (from your db.js). This gives you a pooled connection for efficient queries.
-    const result = await pool
-      .request()
-      .input("EmployeeID", sql.Int, id) // Prepared statement: Safely injects the id into the SQL query to prevent SQL injection attacks.
-      .query("SELECT * FROM DummyEmployees WHERE EmployeeID = @EmpployeeID"); // SQL query: Selects all columns from DummyEmployees
-    console.log(result);
+    // const result = await pool
+    //   .request()
+    //   .input("EmployeeID", sql.Int, id) // Prepared statement: Safely injects the id into the SQL query to prevent SQL injection attacks.
+    //   .query("SELECT * FROM DummyEmployees WHERE EmployeeID = @EmpployeeID"); // SQL query: Selects all columns from DummyEmployees
+    // console.log(result);
+    const [rows] = await pool.query(
+      "SELECT * FROM DummyEmployees WHERE EmployeeID = ?",
+      [id]
+    );
 
-    if (result.recordset.length === 0) {
-      // recordset = set of rows returned by the query
+    if (rows.length === 0) {
       return res.status(404).json({
-        // Not found: If the query returns no rows, the employee doesn’t exist. Returns 404 Not Found
         success: false,
         message: "Employee details not found",
       });
     }
 
+    // if (result.recordset.length === 0) {
+    //   // recordset = set of rows returned by the query
+    //   return res.status(404).json({
+    //     // Not found: If the query returns no rows, the employee doesn’t exist. Returns 404 Not Found
+    //     success: false,
+    //     message: "Employee details not found",
+    //   });
+    // }
+
+    // res.status(200).json({
+    //   // Success response: If a row exists, return 200 OK with the first (and only) matching employee’s data.
+    //   success: true,
+    //   empData: result.recordset[0], // returns the first employee object from the recordset array
+    // });
+
+    // ** MySQL (mysql2/promise): const [rows] = await pool.query("SELECT ...", [params]);
+    // ** MSSQL (mssql): const result = await pool.request().input(...).query("SELECT ...");
+
     res.status(200).json({
-      // Success response: If a row exists, return 200 OK with the first (and only) matching employee’s data.
       success: true,
-      empData: result.recordset[0], // returns the first employee object from the recordset array
+      empData: rows[0],
     });
   } catch (error) {
     // Error handling: Catches unexpected errors (DB issues, code bugs), logs them, and returns 500 Internal Server Error with a generic message.
