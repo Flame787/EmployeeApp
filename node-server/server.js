@@ -12,7 +12,7 @@ app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
 
 // for test in terminalu: node server.js - when started, should write 'Server is running on port...'
 
-// creating 1st API: get all employee records
+// creating 1st API: get all employee records - GET method:
 
 app.get("/api/employees", async (req, res) => {
   // Route definition: This creates a GET endpoint at /api/employees.
@@ -42,7 +42,7 @@ app.get("/api/employees", async (req, res) => {
 
 // Check if 1. API works: http://localhost:5000/api/employees - should return all employees in JSON format
 
-// create 2. API: get an employee by ID
+// create 2. API: get an employee by ID - GET method:
 
 app.get("/api/employees/:id", async (req, res) => {
   // Defines a GET endpoint at /api/employees/:id, where :id is a dynamic URL parameter.
@@ -110,4 +110,105 @@ app.get("/api/employees/:id", async (req, res) => {
 
 // Check if 2. API works: http://localhost:5000/api/employees/1 OR http://localhost:5000/api/employees/2 - should return employee with ID 1 or 2 in JSON format
 
-// create 3. API: add a new employee (POST)
+// create 3. API: Add a new employee - POST method:
+
+app.post("/api/employees", async (req, res) => {
+  try {
+    const { EmployeeName, MobileNumber, Department, Salary } = req.body;
+    // validation of input data:
+    if (!EmployeeName || !MobileNumber || !Department || !Salary) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+    const pool = await poolPromise;
+
+    //   const result = await pool
+    //     .request()
+    //     .input("EmployeeName", sql.VarChar, EmployeeName)
+    //     .input("MobileNumber", sql.VarChar, MobileNumber)
+    //     .input("Department", sql.VarChar, Department)
+    //     .input("Salary", sql.Decimal, Salary)
+    //     .query(
+    //       "INSERT INTO DummyEmployees(EmployeeName, MobileNumber, Department, Salary) VALUES (@EmployeeName, @MobileNumber, @Department, @Salary)"
+    //     );
+    //   res.status(200).json(result.rowsAffected);
+    // } catch (error) {
+    //   res.status(500).json(error.message);
+    // }
+    const [result] = await pool.query(
+      "INSERT INTO DummyEmployees (EmployeeName, MobileNumber, Department, Salary) VALUES (?, ?, ?, ?)",
+      [EmployeeName, MobileNumber, Department, Salary]
+    );
+    // result.insertId = ID of a newly added employee:
+    res.status(201).json({
+      success: true,
+      message: "Employee created successfully",
+      id: result.insertId,
+    });
+  } catch (error) {
+    console.error("Error inserting employee:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error, try again",
+      error: error.message,
+    });
+  }
+});
+
+/* Check if 3. API works: use Postman to send a POST request to http://localhost:5000/api/employees with JSON body-raw:
+{
+  "EmployeeName": "John Doe",  
+  "MobileNumber": "123-456-7890",
+  "Department": "IT",
+  "Salary": 60000
+}
+
+Should return JSON with success message and new employee ID. */
+
+// Create 4. API: Update an existing employee - PUT method:
+
+app.put("/api/employees/:id", async (req, res) => {
+  try {
+    const { id } = req.params; // extract employee ID from URL parameters
+    const { EmployeeName, MobileNumber, Department, Salary } = req.body; // extract updated data from request body
+    // validation of input data:
+    if (!EmployeeName || !MobileNumber || !Department || !Salary) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+    const pool = await poolPromise;
+
+    const [result] = await pool.query(
+      "UPDATE DummyEmployees SET EmployeeName = ?, MobileNumber = ?, Department = ?, Salary = ? WHERE EmployeeID = ?",
+      [EmployeeName, MobileNumber, Department, Salary, id] // use the extracted id here
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Employee updated successfully",
+      updatedId: id,
+      affectedRows: result.affectedRows,
+      changedRows: result.changedRows,
+    });
+  } catch (error) {
+    console.error("Error updating employee:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error, try again",
+      error: error.message,
+    });
+  }
+});
+
+/* Check if 4. API works: use Postman to send a PUT request to http://localhost:5000/api/employees/1 (or any other existing ID number) with JSON body-raw:
+{
+ "EmployeeName": "Tina Mendez",  
+ "MobileNumber": "987-654-3210",    
+ "Department": "HR",
+ "Salary": 65000
+}
+// Should return JSON with success message, and the table will be changed */
