@@ -52,3 +52,14 @@ More users can send requests to the database at the same time, pool will handle 
 
 config - already defined earlier; an object with settings for connecting to the database (host, user, password, database name, port, connection limit etc.). */
 
+
+// To start the frontend server:
+// 1. Open a terminal and navigate to the 'employee-crud-ui' directory: ...EmployeeApp/employee-crud-ui 
+// 2. Use the command: npm start 
+
+// To start the backend server:
+// 1. Open a terminal and navigate to the 'node-server' directory: ...EmployeeApp/node-server 
+// 2. Use the command: node server.js
+
+// The backend server runs on port 5000 by default, and the frontend server runs on port 3000 by default. 
+// Make sure both servers are running.
