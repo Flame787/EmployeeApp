@@ -96,7 +96,7 @@ const EmployeeCrud = () => {
       >
         Add new employee
       </button>
-      <h1>Employees List</h1>
+      <h1>Employees List - NEW</h1>
       <table className="table table-bordered">
         <thead>
           <tr>
